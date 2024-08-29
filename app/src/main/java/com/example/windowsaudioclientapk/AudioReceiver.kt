@@ -29,7 +29,7 @@ class AudioReceiver {
     // ...
     fun registerWithServer(serverIp: String, serverRegistrationPort: Int, configData: String) {
         CoroutineScope(Dispatchers.IO).launch {
-            val configData2 = "[screen_sharing]{keyenter}videoserverip = 192.168.31.194{keyenter}videoserverport = 12345{keyenter}peripheralserverip = 192.168.31.194{keyenter}peripheralserverport = 12346{keyenter}default_target_screen_width = 1920{keyenter}default_target_screen_height = 1080{keyenter}default_window_width = 800{keyenter}default_window_height = 600{keyenter}[audio_sharing]{keyenter}audioserverip = 192.168.31.194{keyenter}audioserverport = 5005{keyenter}channels = 2{keyenter}rate = 44100{keyenter}chunk = 1024{keyenter}deviceindex = 0{keyenter}deviceautotarget = CABLE Output"
+            val configData2 = "[screen_sharing]{keyenter}videoserverip = 192.168.31.112{keyenter}videoserverport = 12345{keyenter}peripheralserverip = 192.168.31.112{keyenter}peripheralserverport = 12346{keyenter}default_target_screen_width = 1920{keyenter}default_target_screen_height = 1080{keyenter}default_window_width = 800{keyenter}default_window_height = 600{keyenter}[audio_sharing]{keyenter}audioserverip = 192.168.31.112{keyenter}audioserverport = 5005{keyenter}channels = 2{keyenter}rate = 44100{keyenter}chunk = 1024{keyenter}deviceindex = 0{keyenter}deviceautotarget = CABLE Output"
 
             try {
                 val socket = Socket(InetAddress.getByName(serverIp), serverRegistrationPort)
@@ -44,7 +44,7 @@ class AudioReceiver {
 
                 socket.close()
             } catch (e: IOException) {
-
+                print(e)
             }
             startReceiving(5005)
         }
@@ -82,15 +82,19 @@ class AudioReceiver {
         audioTrack.play() // Start playback
 
         Thread {
-            val buffer = ByteArray(1024 * 2 * 2)
-            val packet = DatagramPacket(buffer, buffer.size)
+            try{
+                val buffer = ByteArray(1024 * 2 * 2)
+                val packet = DatagramPacket(buffer, buffer.size)
 
-            while (true) {
-                socket.receive(packet)
+                while (true) {
+                    socket.receive(packet)
 
-                // Write received data to the existing AudioTrack
-                val byteBuffer = ByteBuffer.wrap(buffer)
-                audioTrack.write(byteBuffer, buffer.size, AudioTrack.WRITE_BLOCKING)
+                    // Write received data to the existing AudioTrack
+                    val byteBuffer = ByteBuffer.wrap(buffer)
+                    audioTrack.write(byteBuffer, buffer.size, AudioTrack.WRITE_BLOCKING)
+                }
+            }catch (e:Exception){
+                println(e)
             }
         }.start()
     }
